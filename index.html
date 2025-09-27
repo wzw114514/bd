@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神里凌华生日倒计时</title>
+    <link rel="icon" href="tb.jpg" type="image/jpeg">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: white;
+        }
+        body {
+            background-image: url('b1.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center top;
+            color: black;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 4em;
+        }
+        h2 {
+            font-size: 2.5em;
+        }
+        h3 {
+            font-size: 1.5em;
+        }
+        #footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+        }
+        #footer img {
+            margin-right: 10px;
+        }
+        #celebration {
+            display: none;
+            font-size: 3em;
+            color: red;
+        }
+        .error {
+            color: white;
+        }
+        .retry-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+    </style>
+    <script>
+        let serverTimeOffset = 0;
+
+        function updateTimer(serverTime) {
+            const startTime = new Date('2021-07-21T00:00:00');
+            const now = new Date(Date.now() + serverTimeOffset);
+            const diff = now - startTime;
+
+            const runDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const runHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const runMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const runSeconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            const targetDate = new Date(now.getFullYear(), 8, 28);
+            if (now > targetDate) {
+                targetDate.setFullYear(targetDate.getFullYear() + 1);
+            }
+
+            const countdown = targetDate - now;
+            const countdownDays = Math.floor(countdown / (1000 * 60 * 60 * 24));
+            const countdownHours = Math.floor((countdown % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const countdownMinutes = Math.floor((countdown % (1000 * 60 * 60)) / (1000 * 60));
+            const countdownSeconds = Math.floor((countdown % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent = `庆祝安全运行日倒计时 ${countdownDays}天${countdownHours}小时${countdownMinutes}分${countdownSeconds}秒`;
+            document.getElementById('runtime').textContent = `已运行 ${runDays}天${runHours}小时${runMinutes}分${runSeconds}秒`;
+
+            document.getElementById('current-time').textContent = `当前时间: ${now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}`;
+
+            if (now.getMonth() === 8 && now.getDate() === 28) {
+                document.getElementById('celebration').style.display = 'block';
+                document.body.style.backgroundImage = "url('b2.jpg')";
+            } else {
+                document.getElementById('celebration').style.display = 'none';
+                document.body.style.backgroundImage = "url('b1.jpg')";
+            }
+        }
+
+        function fetchServerTime() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'https://worldtimeapi.org/api/timezone/Asia/Shanghai', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        serverTimeOffset = response.unixtime * 1000 - Date.now();
+                        updateTimer(response.unixtime * 1000);
+                    } catch (e) {
+                        showError();
+                    }
+                } else if (xhr.readyState === 4 && xhr.status !== 200) {
+                    showError();
+                }
+            };
+            xhr.send();
+        }
+
+        function showError() {
+            document.body.innerHTML = `
+                <h1 class="error">无法访问NTP服务器</h1>
+                <button class="retry-button" onclick="fetchServerTime()">重试</button>
+            `;
+            document.body.style.background = "white";
+        }
+
+        setInterval(() => {
+            updateTimer(Date.now() + serverTimeOffset);
+        }, 1000);
+
+        window.onload = function () {
+            fetchServerTime();
+        };
+    </script>
+</head>
+<body>
+    <h1>神里凌华生日倒计时</h1>
+    <h1 id="countdown">神里凌华生日倒计时</h1>
+    <h3 id="runtime">shenlilinghua.com当前已运行</h3>
+    <h2 id="current-time">当前时间</h2>
+    <h1 id="celebration" style="display:none;">凌华生日快乐，祝你天天开心</h1>
+
+    <div id="footer">
+        <img src="tb.jpg" alt="网站图标" width="50" height="50">
+        <p>2021-2024 shenlilinghua.com 版权所有</p>
+    </div>
+</body>
+</html>
